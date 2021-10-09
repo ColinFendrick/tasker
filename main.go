@@ -110,6 +110,25 @@ func main() {
 					return completeTask(text)
 				},
 			},
+			{
+				Name:    "finished",
+				Aliases: []string{"f"},
+				Usage:   "list completed tasks",
+				Action: func(c *cli.Context) error {
+					tasks, err := getFinished()
+					if err != nil {
+						if err == mongo.ErrNoDocuments {
+							fmt.Print("Nothing to see here.\nRun `done 'task'` to complete a task")
+							return nil
+						}
+
+						return err
+					}
+
+					printTasks(tasks)
+					return nil
+				},
+			},
 		},
 	}
 
@@ -190,4 +209,13 @@ func filterTasks(filter interface{}) ([]*Task, error) {
 	}
 
 	return tasks, nil
+}
+
+func getFinished() ([]*Task, error) {
+	// show all finished tasks
+	filter := bson.D{
+		primitive.E{Key: "completed", Value: true},
+	}
+
+	return filterTasks(filter)
 }
